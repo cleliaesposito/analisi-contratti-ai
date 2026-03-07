@@ -6,7 +6,7 @@ import PyPDF2
 # Prendi la chiave dalla tua Foto 2 e incollala qui tra le virgolette
 API_KEY = "AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s" 
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-pro').
+model =  genai.GenerativeModel('gemini-pro')
 st.set_page_config(page_title="Guardiano Contratti", page_icon="🛡️")
 
 st.title("🛡️ Guardiano del Contratto Globale AI")
