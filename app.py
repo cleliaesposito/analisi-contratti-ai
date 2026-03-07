@@ -2,31 +2,57 @@ import streamlit as st
 import google.generativeai as genai
 import PyPDF2
 
-# --- CONFIGURAZIONE CHIAVE API ---
-# Prendi la chiave dalla tua Foto 2 e incollala qui tra le virgolette
-API_KEY = "AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s" 
+# --- CONFIGURAZIONE ---
+API_KEY = "LA_TUA_CHIAVE_QUI" 
 genai.configure(api_key=API_KEY)
+
+# Usiamo 1.5-flash: è velocissimo e ottimo per leggere documenti
 model = genai.GenerativeModel('gemini-1.5-flash')
-st.set_page_config(page_title="Guardiano Contratti", page_icon="🛡️")
+
+st.set_page_config(page_title="Guardiano del Contratto", page_icon="🛡️", layout="centered")
 
 st.title("🛡️ Guardiano del Contratto Globale AI")
-st.write("Analisi professionale dei rischi contrattuali in pochi secondi.")
+st.info("Analisi professionale dei rischi contrattuali in pochi secondi.")
 
-uploaded_file = st.file_uploader("Carica il tuo contratto (PDF)", type="pdf")
+file_pdf = st.file_uploader("Carica il tuo contratto (PDF)", type="pdf")
 
-if uploaded_file:
-    # Lettura del PDF
-    reader = PyPDF2.PdfReader(uploaded_file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text()
+if file_pdf:
+    # Mostra un'anteprima del caricamento
+    st.success("File caricato correttamente!")
     
     if st.button("🚀 AVVIA ANALISI"):
-        with st.spinner('L\'intelligenza artificiale sta analizzando...'):
-            prompt = f"Analizza questo contratto in italiano. Trova i 3 rischi principali e dai un voto di equità da 1 a 10. Testo: {text[:10000]}"
+        with st.spinner('L’AI sta leggendo le clausole...'):
             try:
-                response = model.generate_content(prompt)
-                st.markdown("### Risultato dell'analisi:")
-                st.write(response.text)
+                # Estrazione testo migliorata
+                reader = PyPDF2.PdfReader(file_pdf)
+                testo = ""
+                for page in reader.pages:
+                    testo += page.extract_text()
+                
+                if not testo.strip():
+                    st.error("Il PDF sembra non contenere testo leggibile (forse è un'immagine?).")
+                else:
+                    # Prompt più strutturato per risultati migliori
+                    prompt = (
+                        "Agisci come un esperto legale. Analizza il seguente contratto in italiano. "
+                        "1. Elenca i 3 rischi principali per chi firma. "
+                        "2. Indica eventuali clausole vessatorie o squilibrate. "
+                        "3. Dai un voto di equità da 1 a 10 con una breve spiegazione. "
+                        f"\n\nTesto del contratto:\n{testo[:15000]}" # Limite aumentato a 15k caratteri
+                    )
+                    
+                    risposta = model.generate_content(prompt)
+                    
+                    st.markdown("---")
+                    st.markdown("### 📋 Risultato dell'Analisi Professionale")
+                    st.write(risposta.text)
+                    
             except Exception as e:
-                st.error(f"Errore: {e}")
+                # Questo cattura l'errore 404 e spiega cosa fare
+                if "404" in str(e):
+                    st.error("Errore di configurazione: Il modello specificato non è disponibile. Prova a cambiare 'gemini-1.5-flash' con 'gemini-1.5-pro' nel codice.")
+                else:
+                    st.error(f"Si è verificato un errore: {e}")
+
+# --- FOOTER ---
+st.caption("Nota: Questa analisi è generata da un'IA e non sostituisce il parere di un avvocato.")
