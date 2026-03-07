@@ -3,7 +3,7 @@ import google.generativeai as genai
 import PyPDF2
 
 # --- CONFIGURAZIONE ---
-API_KEY = "LA_TUA_CHIAVE_QUI" 
+API_KEY = "AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s"
 genai.configure(api_key=API_KEY)
 
 # Usiamo 1.5-flash: è velocissimo e ottimo per leggere documenti
