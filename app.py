@@ -3,11 +3,11 @@ import google.generativeai as genai
 import PyPDF2
 
 # --- CONFIGURAZIONE ---
-API_KEY = AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s
+API_KEY = "AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s"
 genai.configure(api_key=API_KEY)
 
 # Usiamo 1.5-flash: è velocissimo e ottimo per leggere documenti
-model = genai.GenerativeModel ( 'gemini-1.5-pro')
+model = genai.GenerativeModel('gemini-1.5-pro')
 
 st.set_page_config(page_title="Guardiano del Contratto", page_icon="🛡️", layout="centered")
 
