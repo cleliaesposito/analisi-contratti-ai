@@ -4,7 +4,7 @@ import PyPDF2
 
 # --- CONFIGURAZIONE CHIAVE API ---
 # Prendi la chiave dalla tua Foto 2 e incollala qui tra le virgolette
-API_KEY = AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s 
+API_KEY = "AIzaSyAMb8tZrMuEWxBxNVX_GX_0sjMaIaHq30s" 
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
