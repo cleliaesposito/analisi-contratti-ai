@@ -1,27 +1,22 @@
 import streamlit as st
 import PyPDF2
-import requests
-import json
-import os  # <--- AGGIUNTO: Necessario per leggere i Secrets in sicurezza
+import google.generativeai as genai
+import os
 
-# --- NUOVA CONFIGURAZIONE CHIAVE SICURA ---
-# Legge la chiave direttamente dai Secrets di Streamlit o dall'ambiente locale
+# --- CONFIGURAZIONE CHIAVE API SICURA ---
+# Leggiamo la chiave direttamente dai Secrets di Streamlit
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# Configura l'URL solo se la chiave esiste, per evitare errori di link malformati
 if API_KEY:
-    API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+    # Usiamo la libreria ufficiale che gestisce da sola l'endpoint corretto
+    genai.configure(api_key=API_KEY)
 else:
-    API_URL = ""
+    st.error("⚠️ Chiave API non trovata! Inseriscila nei Secrets di Streamlit Cloud.")
 
 st.set_page_config(page_title="Guardiano Contratti", page_icon="🛡️")
 
 st.title("🛡️ Guardiano del Contratto Globale AI")
-st.info("Analisi professionale attiva con nuova chiave API sicura.")
-
-# Controllo iniziale se la chiave è configurata
-if not API_KEY:
-    st.error("⚠️ Chiave API non trovata! Ricordati di inserirla nei Secrets di Streamlit Cloud usando il nome GEMINI_API_KEY.")
+st.info("Analisi professionale attiva con configurazione ufficiale.")
 
 file_pdf = st.file_uploader("Carica il tuo contratto (PDF)", type="pdf")
 
@@ -35,46 +30,32 @@ if file_pdf and API_KEY:
                 reader = PyPDF2.PdfReader(file_pdf)
                 testo_completo = ""
                 for page in reader.pages:
-                    testo_completo += page.extract_text()
+                    testo_completo += page.extract_text() or ""
                 
                 if not testo_completo.strip():
                     st.error("Il file sembra vuoto o non leggibile.")
                 else:
-                    # 2. Costruzione della richiesta
+                    # 2. Inizializzazione del modello corretto
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    # 3. Costruzione del prompt professionale
                     prompt = (
-                        "Agisci come un avvocato esperto. Analizza questo contratto in italiano: "
-                        "1. Identifica i 3 rischi più gravi. "
-                        "2. Segnala eventuali clausole vessatorie. "
-                        "3. Esprimi un voto di equità da 1 a 10. "
-                        f"\n\nTesto contratto:\n{testo_completo[:15000]}"
+                        "Agisci come un avvocato esperto. Analizza questo contratto in italiano:\n"
+                        "1. Identifica i 3 rischi più gravi.\n"
+                        "2. Segnala eventuali clausole vessatorie.\n"
+                        "3. Esprimi un voto di equità da 1 a 10.\n\n"
+                        f"Testo contratto:\n{testo_completo[:15000]}"
                     )
                     
-                    payload = {
-                        "contents": [{
-                            "parts": [{"text": prompt}]
-                        }]
-                    }
+                    # 4. Generazione del contenuto tramite libreria ufficiale
+                    response = model.generate_content(prompt)
                     
-                    # 3. Invio a Google
-                    response = requests.post(
-                        API_URL,
-                        headers={'Content-Type': 'application/json'},
-                        data=json.dumps(payload)
-                    )
-                    
-                    # 4. Gestione Risposta
-                    risultato = response.json()
-                    
-                    if response.status_code == 200:
-                        analisi = risultato['candidates'][0]['content']['parts'][0]['text']
-                        st.markdown("---")
-                        st.markdown("### 📋 Analisi del Contratto:")
-                        st.write(analisi)
-                    else:
-                        errore_msg = risultato.get('error', {}).get('message', 'Errore sconosciuto')
-                        st.error(f"Errore API: {errore_msg}")
+                    # 5. Mostra il risultato
+                    st.markdown("---")
+                    st.markdown("### 📋 Analisi del Contratto:")
+                    st.write(response.text)
 
             except Exception as e:
-                st.error(f"Errore tecnico: {e}")
+                st.error(f"Errore tecnico durante la generazione: {e}")
 
 st.caption("Nota: Analisi basata su intelligenza artificiale. Non sostituisce un legale.")
