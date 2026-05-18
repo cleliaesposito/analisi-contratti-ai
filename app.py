@@ -36,7 +36,7 @@ if file_pdf and API_KEY:
                     st.error("Il file sembra vuoto o non leggibile.")
                 else:
                     # 2. Inizializzazione del modello corretto
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    model = genai.GenerativeModel('models/gemini-1.5-flash')
                     
                     # 3. Costruzione del prompt professionale
                     prompt = (
