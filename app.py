@@ -2,20 +2,30 @@ import streamlit as st
 import PyPDF2
 import requests
 import json
+import os  # <--- AGGIUNTO: Necessario per leggere i Secrets in sicurezza
 
-# --- NUOVA CONFIGURAZIONE CHIAVE ---
-API_KEY = "AIzaSyCmv9lE4ZfXQyKQccHhzumYPeys07vamcc"
-# Usiamo l'endpoint v1 stabile per evitare l'errore 404 della beta
-API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+# --- NUOVA CONFIGURAZIONE CHIAVE SICURA ---
+# Legge la chiave direttamente dai Secrets di Streamlit o dall'ambiente locale
+API_KEY = os.environ.get("GEMINI_API_KEY")
+
+# Configura l'URL solo se la chiave esiste, per evitare errori di link malformati
+if API_KEY:
+    API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+else:
+    API_URL = ""
 
 st.set_page_config(page_title="Guardiano Contratti", page_icon="🛡️")
 
 st.title("🛡️ Guardiano del Contratto Globale AI")
-st.info("Analisi professionale attiva con nuova chiave API.")
+st.info("Analisi professionale attiva con nuova chiave API sicura.")
+
+# Controllo iniziale se la chiave è configurata
+if not API_KEY:
+    st.error("⚠️ Chiave API non trovata! Ricordati di inserirla nei Secrets di Streamlit Cloud usando il nome GEMINI_API_KEY.")
 
 file_pdf = st.file_uploader("Carica il tuo contratto (PDF)", type="pdf")
 
-if file_pdf:
+if file_pdf and API_KEY:
     st.success("Documento pronto per l'analisi.")
     
     if st.button("🚀 AVVIA ANALISI"):
