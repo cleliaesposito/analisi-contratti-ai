@@ -11,7 +11,7 @@ st.set_page_config(
     page_icon="🛡️",
     menu_items={
         "About": (
-            "**Guardiano del Contratto Globale AI** — Strumento di analisi automatizzata. "
+            "**Analisi Contratti AI** — Strumento di analisi automatizzata. "
             "Non fornisce consulenza legale ai sensi del D.Lgs. 247/2012. "
             "Dati elaborati tramite Anthropic Claude API."
         ),
@@ -41,7 +41,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption("v1.2 · MIT License · © 2024 Clelia Esposito")
 
-st.title("🛡️ Guardiano del Contratto Globale AI")
+st.title("🛡️ Analisi Contratti AI")
 
 # --- Consenso informato (GDPR Art. 6 + Art. 13) ---
 if "consent_given" not in st.session_state:
@@ -191,7 +191,7 @@ if file_pdf:
                 st.error(f"Errore tecnico durante la generazione: {e}")
 
 st.caption(
-    "Guardiano del Contratto Globale AI · "
+    "Analisi Contratti AI · "
     "Non fornisce consulenza legale · "
     "Dati elaborati via Anthropic Claude API · "
     "MIT License"
