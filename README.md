@@ -1,4 +1,4 @@
-# 🛡️ Guardiano del Contratto Globale AI
+# 🛡️ Analisi Contratti AI
 
 Strumento di analisi automatizzata di contratti PDF basato su **Anthropic Claude**. Carica un contratto, ottieni in pochi secondi un'analisi strutturata dei rischi, delle clausole vessatorie e un voto di equità — direttamente nel browser.
 
