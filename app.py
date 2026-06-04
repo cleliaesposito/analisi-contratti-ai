@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 st.set_page_config(
-    page_title="Guardiano Contratti",
+    page_title="Analisi Contratti AI",
     page_icon="🛡️",
     menu_items={
         "About": (
@@ -39,7 +39,7 @@ with st.sidebar:
         "Per esercitare i diritti GDPR (Art. 15-22) contatta il titolare dell'applicazione."
     )
     st.markdown("---")
-    st.caption("v1.2 · MIT License · © 2024 Clelia Esposito")
+    st.caption("v1.3 · MIT License · © 2024 Clelia Esposito")
 
 st.title("🛡️ Analisi Contratti AI")
 
@@ -108,12 +108,7 @@ if not API_KEY:
     )
     st.stop()
 
-# --- Caricamento documento ---
-file_pdf = st.file_uploader(
-    "Carica il tuo contratto (PDF testuale — non scansioni)",
-    type="pdf",
-    help="Sono supportati solo PDF con testo selezionabile. I PDF basati su immagini/scansioni non verranno letti correttamente.",
-)
+client = anthropic.Anthropic(api_key=API_KEY)
 
 _SYSTEM_PROMPT = (
     "Sei un avvocato esperto specializzato nell'analisi di contratti italiani e internazionali. "
@@ -124,13 +119,23 @@ _SYSTEM_PROMPT = (
     "Sii preciso, professionale e diretto. Usa il formato markdown."
 )
 
+MAX_CHARS = 30000
+
+# --- Caricamento documento ---
+file_pdf = st.file_uploader(
+    "Carica il tuo contratto (PDF testuale — non scansioni)",
+    type="pdf",
+    help="Sono supportati solo PDF con testo selezionabile. I PDF basati su immagini/scansioni non verranno letti correttamente.",
+)
+
 if file_pdf:
-    st.success("Documento pronto per l'analisi.")
+    reader = pypdf.PdfReader(file_pdf)
+    num_pagine = len(reader.pages)
+    st.success(f"Documento pronto per l'analisi — {num_pagine} pagina{'e' if num_pagine != 1 else 'a'}.")
 
     if st.button("🚀 AVVIA ANALISI"):
         with st.spinner("L'AI sta esaminando le clausole..."):
             try:
-                reader = pypdf.PdfReader(file_pdf)
                 testo_completo = ""
                 for page in reader.pages:
                     testo_completo += page.extract_text() or ""
@@ -142,11 +147,9 @@ if file_pdf:
                         "utilizza un PDF testuale o convertilo prima con OCR."
                     )
                 else:
-                    MAX_CHARS = 15000
                     troncato = len(testo_completo) > MAX_CHARS
                     testo_da_analizzare = testo_completo[:MAX_CHARS]
 
-                    client = anthropic.Anthropic(api_key=API_KEY)
                     message = client.messages.create(
                         model="claude-sonnet-4-6",
                         max_tokens=4096,
@@ -176,6 +179,13 @@ if file_pdf:
                     st.markdown("---")
                     st.markdown("### 📋 Analisi del Contratto:")
                     st.write(response_text)
+
+                    st.download_button(
+                        label="⬇️ Scarica analisi (.txt)",
+                        data=response_text,
+                        file_name=f"analisi_{file_pdf.name.replace('.pdf', '')}.txt",
+                        mime="text/plain",
+                    )
 
                     st.warning(
                         "**Disclaimer post-analisi:** questo output è generato da un modello AI e non costituisce "
