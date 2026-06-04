@@ -39,8 +39,8 @@ Strumento di analisi automatizzata di contratti PDF basato su **Anthropic Claude
 ### 1. Clona il repository
 
 ```bash
-git clone https://github.com/cleliaesposito/global-contract-guardian.git
-cd global-contract-guardian
+git clone https://github.com/cleliaesposito/analisi-contratti-ai.git
+cd analisi-contratti-ai
 ```
 
 ### 2. Installa le dipendenze
@@ -90,7 +90,7 @@ ANTHROPIC_API_KEY = "sk-ant-..."
 ## 📁 Struttura del progetto
 
 ```
-global-contract-guardian/
+analisi-contratti-ai/
 ├── app.py              # Applicazione principale
 ├── requirements.txt    # Dipendenze Python
 ├── .env.example        # Template variabili d'ambiente
