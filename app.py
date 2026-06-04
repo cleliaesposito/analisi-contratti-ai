@@ -129,17 +129,25 @@ file_pdf = st.file_uploader(
 )
 
 if file_pdf:
-    reader = pypdf.PdfReader(file_pdf)
-    num_pagine = len(reader.pages)
+    # Estrai il testo subito e salvalo in session_state per sopravvivere ai re-run di Streamlit.
+    # Su mobile il file uploader non ritrasmette il file a ogni re-run (es. click del bottone),
+    # quindi senza questa cache il documento risulta vuoto al secondo tentativo.
+    if st.session_state.get("pdf_name") != file_pdf.name:
+        reader = pypdf.PdfReader(file_pdf)
+        testo = ""
+        for page in reader.pages:
+            testo += page.extract_text() or ""
+        st.session_state.pdf_name = file_pdf.name
+        st.session_state.pdf_pages = len(reader.pages)
+        st.session_state.pdf_text = testo
+
+    num_pagine = st.session_state.pdf_pages
     st.success(f"Documento pronto per l'analisi — {num_pagine} pagina{'e' if num_pagine != 1 else 'a'}.")
 
     if st.button("🚀 AVVIA ANALISI"):
         with st.spinner("L'AI sta esaminando le clausole..."):
             try:
-                testo_completo = ""
-                for page in reader.pages:
-                    testo_completo += page.extract_text() or ""
-
+                testo_completo = st.session_state.pdf_text
                 if not testo_completo.strip():
                     st.error(
                         "Il file non contiene testo selezionabile. "
