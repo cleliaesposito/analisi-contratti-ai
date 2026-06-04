@@ -125,3 +125,9 @@ Distribuito sotto licenza **MIT**. Vedi [`LICENSE`](LICENSE) per i dettagli.
 ## ⚖️ Note legali
 
 Le analisi prodotte da questo strumento sono generate automaticamente da un modello AI e **non costituiscono consulenza legale** ai sensi del D.Lgs. 247/2012 (Ordinamento Forense Italiano). L'utilizzo di questo software non crea un rapporto avvocato-cliente.
+
+---
+
+## 👤 Autrice
+
+**Clelia Esposito** — [@cleliaesposito_ia](https://www.instagram.com/cleliaesposito_ia) su Instagram
