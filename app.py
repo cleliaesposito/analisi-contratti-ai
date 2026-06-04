@@ -1,6 +1,6 @@
 import streamlit as st
 import pypdf
-import google.generativeai as genai
+import anthropic
 import os
 from dotenv import load_dotenv
 
@@ -13,14 +13,12 @@ st.set_page_config(
         "About": (
             "**Guardiano del Contratto Globale AI** — Strumento di analisi automatizzata. "
             "Non fornisce consulenza legale ai sensi del D.Lgs. 247/2012. "
-            "Dati elaborati tramite Google Gemini API."
+            "Dati elaborati tramite Anthropic Claude API."
         ),
     },
 )
 
-API_KEY = os.environ.get("GEMINI_API_KEY")
-if API_KEY:
-    genai.configure(api_key=API_KEY)
+API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 # --- Sidebar: riferimenti normativi e privacy ---
 with st.sidebar:
@@ -33,15 +31,15 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🔒 Trattamento Dati")
     st.markdown(
-        "Il testo estratto dal documento viene trasmesso a **Google Gemini API** "
+        "Il testo estratto dal documento viene trasmesso ad **Anthropic Claude API** "
         "unicamente per generare la risposta. "
         "Questa applicazione non archivia né registra alcun dato.\n\n"
-        "Titolare del trattamento lato Google: "
-        "[Google AI Terms of Service](https://ai.google.dev/gemini-api/terms)\n\n"
+        "Titolare del trattamento lato Anthropic: "
+        "[Anthropic Privacy Policy](https://www.anthropic.com/privacy)\n\n"
         "Per esercitare i diritti GDPR (Art. 15-22) contatta il titolare dell'applicazione."
     )
     st.markdown("---")
-    st.caption("v1.1 · MIT License · © 2024 Clelia Esposito")
+    st.caption("v1.2 · MIT License · © 2024 Clelia Esposito")
 
 st.title("🛡️ Guardiano del Contratto Globale AI")
 
@@ -74,8 +72,8 @@ Per valutazioni legalmente rilevanti rivolgiti esclusivamente a un avvocato abil
 *Finalità e base giuridica:* elaborazione del documento caricato per generare un'analisi AI,
 sulla base del consenso espresso dall'utente (Art. 6.1.a GDPR).
 
-*Destinatari dei dati:* il testo estratto dal PDF viene trasmesso a **Google LLC** tramite le API
-Google Gemini esclusivamente per la generazione della risposta. Google agisce come responsabile
+*Destinatari dei dati:* il testo estratto dal PDF viene trasmesso ad **Anthropic, PBC** tramite le API
+Claude esclusivamente per la generazione della risposta. Anthropic agisce come responsabile
 del trattamento (Art. 28 GDPR). L'applicazione non archivia né trasmette i dati a terze parti ulteriori.
 
 *Conservazione:* i dati non vengono memorizzati da questa applicazione; la sessione è volatile.
@@ -106,7 +104,7 @@ if not st.session_state.consent_given:
 if not API_KEY:
     st.error(
         "⚠️ Chiave API non configurata. "
-        "Aggiungila nei **Secrets** di Streamlit Cloud con la chiave `GEMINI_API_KEY`."
+        "Aggiungila nel file `.env` come `ANTHROPIC_API_KEY` oppure nei **Secrets** di Streamlit Cloud."
     )
     st.stop()
 
@@ -115,6 +113,15 @@ file_pdf = st.file_uploader(
     "Carica il tuo contratto (PDF testuale — non scansioni)",
     type="pdf",
     help="Sono supportati solo PDF con testo selezionabile. I PDF basati su immagini/scansioni non verranno letti correttamente.",
+)
+
+_SYSTEM_PROMPT = (
+    "Sei un avvocato esperto specializzato nell'analisi di contratti italiani e internazionali. "
+    "Rispondi sempre in italiano con un'analisi strutturata in tre sezioni:\n"
+    "1. **I 3 rischi più gravi** — descrivi ogni rischio e le sue conseguenze pratiche.\n"
+    "2. **Clausole vessatorie** — elenca e spiega ogni clausola squilibrata o abusiva rilevata.\n"
+    "3. **Voto di equità (1-10)** — assegna un voto con motivazione sintetica.\n\n"
+    "Sii preciso, professionale e diretto. Usa il formato markdown."
 )
 
 if file_pdf:
@@ -132,23 +139,32 @@ if file_pdf:
                     st.error(
                         "Il file non contiene testo selezionabile. "
                         "I PDF generati da scansioni o immagini non sono supportati: "
-                        "utilizza un PDF testuale o converto prima con OCR."
+                        "utilizza un PDF testuale o convertilo prima con OCR."
                     )
                 else:
                     MAX_CHARS = 15000
                     troncato = len(testo_completo) > MAX_CHARS
                     testo_da_analizzare = testo_completo[:MAX_CHARS]
 
-                    model = genai.GenerativeModel("models/gemini-1.5-flash")
-                    prompt = (
-                        "Agisci come un avvocato esperto. Analizza questo contratto in italiano:\n"
-                        "1. Identifica i 3 rischi più gravi.\n"
-                        "2. Segnala eventuali clausole vessatorie.\n"
-                        "3. Esprimi un voto di equità da 1 a 10.\n\n"
-                        f"Testo contratto:\n{testo_da_analizzare}"
+                    client = anthropic.Anthropic(api_key=API_KEY)
+                    message = client.messages.create(
+                        model="claude-sonnet-4-20250514",
+                        max_tokens=4096,
+                        system=[{
+                            "type": "text",
+                            "text": _SYSTEM_PROMPT,
+                            "cache_control": {"type": "ephemeral"},
+                        }],
+                        messages=[{
+                            "role": "user",
+                            "content": f"Analizza questo contratto:\n\n{testo_da_analizzare}",
+                        }],
                     )
 
-                    response = model.generate_content(prompt)
+                    response_text = next(
+                        (block.text for block in message.content if block.type == "text"),
+                        "Nessuna risposta generata.",
+                    )
 
                     if troncato:
                         st.warning(
@@ -159,7 +175,7 @@ if file_pdf:
 
                     st.markdown("---")
                     st.markdown("### 📋 Analisi del Contratto:")
-                    st.write(response.text)
+                    st.write(response_text)
 
                     st.warning(
                         "**Disclaimer post-analisi:** questo output è generato da un modello AI e non costituisce "
@@ -167,12 +183,16 @@ if file_pdf:
                         "rivolgiti a un avvocato abilitato per una valutazione professionale."
                     )
 
+            except anthropic.AuthenticationError:
+                st.error("Chiave API non valida. Verifica il valore di `ANTHROPIC_API_KEY`.")
+            except anthropic.RateLimitError:
+                st.error("Limite di richieste superato. Riprova tra qualche istante.")
             except Exception as e:
                 st.error(f"Errore tecnico durante la generazione: {e}")
 
 st.caption(
     "Guardiano del Contratto Globale AI · "
     "Non fornisce consulenza legale · "
-    "Dati elaborati via Google Gemini API · "
+    "Dati elaborati via Anthropic Claude API · "
     "MIT License"
 )
