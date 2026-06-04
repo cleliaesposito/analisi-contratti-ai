@@ -11,6 +11,9 @@ Strumento di analisi automatizzata di contratti PDF basato su **Anthropic Claude
 - **Analisi dei rischi** — identifica i 3 rischi contrattuali più gravi con descrizione delle conseguenze
 - **Rilevamento clausole vessatorie** — segnala clausole squilibrate o abusive
 - **Voto di equità** — punteggio da 1 a 10 con motivazione
+- **Supporto contratti lunghi** — analizza fino a 30.000 caratteri (NDA, M&A, contratti complessi)
+- **Metadati PDF** — mostra il numero di pagine del documento dopo il caricamento
+- **Download analisi** — esporta il risultato in formato `.txt` con un click
 - **Consenso GDPR** — gate di consenso informato conforme al Reg. UE 2016/679, Art. 13
 - **Privacy by design** — nessun dato archiviato; il testo viene trasmesso ad Anthropic solo per la generazione della risposta
 
