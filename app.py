@@ -2,6 +2,9 @@ import streamlit as st
 import pypdf
 import google.generativeai as genai
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 st.set_page_config(
     page_title="Guardiano Contratti",
